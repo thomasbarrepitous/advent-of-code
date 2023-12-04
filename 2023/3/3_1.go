@@ -43,8 +43,8 @@ func populateSurroundingsMatrix(inputMatrix [][]string, i int, j int) []string {
 func isValidCheck(inputMatrix [][]string, i int, j int, val *int) bool {
 	// If next character is not ouf of bound
 	if j+1 <= len(inputMatrix[i])-1 {
-		parsedInt, err := strconv.Atoi(inputMatrix[i][j+1])
 		// And is a valid integer
+		parsedInt, err := strconv.Atoi(inputMatrix[i][j+1])
 		if err == nil {
 			*val = *val*10 + parsedInt
 			// If valid we stop the recursion

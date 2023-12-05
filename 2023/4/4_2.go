@@ -32,27 +32,22 @@ func cardToUsableArrays(card string) (winningNumbers []int, cardNumbers []int) {
 	return
 }
 
-func getCardCopiesNb(card string) (points int) {
+func PlayCard(lines []string, card string, gameNumber int, totalCard *int) {
+	*totalCard++
 	matches := 0
 	winningNumbers, cardNumbers := cardToUsableArrays(card)
 	for _, winningNumber := range winningNumbers {
 		for _, cardNumber := range cardNumbers {
 			if winningNumber == cardNumber {
 				matches++
-				break
 			}
 		}
 	}
-	fmt.Println("Matches : ", matches)
-	for i := 0; i < matches; i++ {
-		if i == 0 {
-			points = 1
-		} else {
-			points = points * 2
+	for i := 1; i < matches+1; i++ {
+		if gameNumber+i < len(lines) {
+			PlayCard(lines, lines[gameNumber+i-1], gameNumber+i, totalCard)
 		}
-		fmt.Println("Points : ", points)
 	}
-	return
 }
 
 func main() {
@@ -84,9 +79,9 @@ func main() {
 	}
 	var flag int = 0
 	// Print the lines or perform other operations as needed
-	for _, line := range lines {
-		fmt.Println(line)
-		flag += getCardCopiesNb(line)
+	for idx, line := range lines {
+		fmt.Println("Game : ", idx+1)
+		PlayCard(lines, line, idx+1, &flag)
 		fmt.Println("Flag : ", flag)
 	}
 	fmt.Println(flag)

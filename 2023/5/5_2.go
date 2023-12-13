@@ -4,9 +4,9 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"slices"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 type InputRange struct {
@@ -33,6 +33,20 @@ func fromStringArrayToInputArray(inputArray []string) (input []InputRange) {
 		input = append(input, InputRange{destination, source, rangeLen})
 	}
 	return
+}
+
+func getLocationFromSeed(seed int, parsedInput [][]InputRange) (location int) {
+	source := seed
+NEXT_DESTINATION:
+	for _, inputs := range parsedInput {
+		for _, input := range inputs {
+			if source >= input.source && source <= input.source+input.length {
+				source = input.destination - input.source + source
+				continue NEXT_DESTINATION
+			}
+		}
+	}
+	return source
 }
 
 func main() {
@@ -62,7 +76,8 @@ func main() {
 		fmt.Println("Error reading file:", err)
 		return
 	}
-	flags := []int{}
+	flag := 0
+	seeds := []int{}
 	var inputArray []string
 	for _, line := range lines {
 		inputArray = append(inputArray, line)
@@ -76,7 +91,7 @@ func main() {
 		if err != nil {
 			continue
 		}
-		flags = append(flags, seed)
+		seeds = append(seeds, seed)
 	}
 
 	// Not very pretty isn't it?
@@ -87,23 +102,36 @@ func main() {
 	lightToTemperatureLines := inputArray[147:172]
 	temperatureToHumidityLines := inputArray[173:199]
 	humidityToLocationLines := inputArray[200:225]
+
 	slicedInputs := [][]string{seedToSoilLines, soilToFertilizerLines, fertilizerToWaterLines, waterToLightLines, lightToTemperatureLines, temperatureToHumidityLines, humidityToLocationLines}
 	var parsedInput [][]InputRange
 	for _, slicedInput := range slicedInputs {
 		parsedInput = append(parsedInput, fromStringArrayToInputArray(slicedInput))
 	}
 
-	for idx := 0; idx < len(flags); idx++ {
-	NEXT_DESTINATION:
-		for _, inputs := range parsedInput {
-			for _, input := range inputs {
-				if flags[idx] >= input.source && flags[idx] <= input.source+input.length {
-					flags[idx] = input.destination - input.source + flags[idx]
-					continue NEXT_DESTINATION
+	flagChan := make(chan int, 1000)
+	wg := &sync.WaitGroup{}
+	for idx := 0; idx < len(seeds); idx += 2 {
+		baseSeed := seeds[idx]
+		seedRange := seeds[idx+1]
+		go func() {
+			for location := range flagChan {
+				if location < flag || flag == 0 {
+					flag = location
 				}
+				wg.Done()
 			}
+		}()
+
+		for seed := baseSeed; seed < baseSeed+seedRange; seed += 1 {
+			wg.Add(1)
+			go func(seed int) {
+				flagChan <- getLocationFromSeed(seed, parsedInput)
+			}(seed)
+			fmt.Printf("\r Seeds: %d/%d, Seed: %d/%d, Flag: %d", idx/2+1, len(seeds)/2+1, (seed - baseSeed), seedRange, flag)
 		}
 	}
-	slices.Sort(flags)
-	fmt.Println(flags[0])
+	wg.Wait()
+	close(flagChan)
+	fmt.Printf("FLAG : %d", flag)
 }

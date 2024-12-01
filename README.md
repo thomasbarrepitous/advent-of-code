@@ -1,7 +1,6 @@
 # 🎄 Advent of Code Solutions
 
-[!["This is Christmas spirit, as in spirits, booze."](https://img.shields.io/badge/Watch%20Me%20Code-YouTube-red)](https://youtu.be/BfR-WjKFruA)
-
+> "This is Christmas spirit, as in spirits, booze." 🎅
 
 ## 🚀 About
 

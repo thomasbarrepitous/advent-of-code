@@ -8,6 +8,15 @@ function parseInput(filename: string): string[] {
         .split('\n');
 }
 
+function parseInstruction(instruction: string): [number, number] {
+    const [x, y] = instruction.slice(4, -1).split(',');
+    return [parseInt(x), parseInt(y)];
+}
+
+function parseInstructionArray(instructions: string[]): [number, number][] {
+    return instructions.map(instruction => parseInstruction(instruction));
+}
+
 // Part 1 solution
 function solvePart1(input: string[]): number {
     // Extract all the mul(x,y) pairs with numbers up to 3 digits
@@ -28,19 +37,48 @@ function solvePart1(input: string[]): number {
 
 // Part 2 solution
 function solvePart2(input: string[]): number {
-    // TODO: Implement part 2 solution
-    return 0;
+    // Extract all the mul(x,y) pairs with numbers up to 3 digits and do() and don't()
+    const mulPairs = input.map(line => line.match(/(?:mul\(\d{1,3},\d{1,3}\)|do\(\)|don't\(\))/g));
+
+    // Remove all instructions between don't() and do()
+    let enabled = true;
+    const filteredInstructions: string[] = [];
+    mulPairs.forEach((line, index) => {
+        if (line) {
+            line.forEach(instruction => {
+                if (instruction === "don't()") {
+                    enabled = false;
+                } 
+                if (instruction === "do()") {
+                    enabled = true;
+                }
+                // Ignore don't() and do()
+                if (enabled && instruction !== "don't()" && instruction !== "do()") {
+                    filteredInstructions.push(instruction);
+                }
+            });
+        }
+    });
+
+    const parsedInstructions = parseInstructionArray(filteredInstructions);
+
+    // Multiply the pairs together
+    const mulResults = parsedInstructions.map(([x, y]) => x * y);
+
+    // Sum up all the results
+    return mulResults.reduce((acc, curr) => acc + curr, 0);
 }
 
 // Main execution
 function main() {
     const testInput = parseInput(path.join(__dirname, 'test.txt'));
+    const testInput2 = parseInput(path.join(__dirname, 'test2.txt'));
     const input = parseInput(path.join(__dirname, 'input.txt'));
 
     console.log('Part 1 Test:', solvePart1(testInput));
     console.log('Part 1:', solvePart1(input));
 
-    console.log('Part 2 Test:', solvePart2(testInput));
+    console.log('Part 2 Test:', solvePart2(testInput2));
     console.log('Part 2:', solvePart2(input));
 }
 
